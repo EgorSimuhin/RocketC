@@ -6,4 +6,4 @@ target_include_directories(eigen INTERFACE eigen)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(RK main.cpp)
+add_executable(RK final_flight_path.cpp)
