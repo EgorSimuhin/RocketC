@@ -30,10 +30,7 @@ const std::array<std::string, 12> key = {
                                         "ROCKET"
                                          };
 
-std::vector<glm::vec3> perevod_planets(
-					    const int k,
-					    const State_full full
-					    )
+std::vector<glm::vec3> perevod_planets(const int k,const State_full full )
 {
 	std::vector<glm::vec3> result;
 	for (auto i : full.planets_solution)
@@ -53,9 +50,9 @@ std::vector<glm::vec3> perevod_rocket(const State_full full)
 	for (auto i : full.rocket_solution)
 	{
 		glm::vec3 temp;
-                temp.x = i.cond[0]/10e9;
-                temp.y = i.cond[1]/10e9;
-                temp.z = i.cond[2]/10e9;
+                temp.z = i.cond[0]/10e9;
+                temp.x = i.cond[1]/10e9;
+                temp.y = i.cond[2]/10e9;
                 result.push_back(temp);
 	}
 	return result;
@@ -88,7 +85,7 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 // timing
-float deltaTime = 0.0f;
+float deltaTime = 1.0f;
 float lastFrame = 0.0f;
 
 int main()
@@ -122,7 +119,37 @@ int main()
     	}
    	myMap.emplace(key.back(), perevod_rocket(full));
 
-	const std::vector<double> time = perevod_time(full);		
+	const std::vector<double> time = perevod_time(full);	
+
+        double initialTime1 = 0;
+        const double step1 = 1;
+        const double endTime1 = 60225;
+
+        std::vector<std::array<Eigen::Vector3d, 11>> all_orbit;
+        double JED_step = JED;
+        while(initialTime1 < endTime1)
+        {
+                all_orbit.push_back(planets_state_update(JED_step, de405));
+                JED_step += step1;
+                initialTime1 += step1;
+        }
+
+        std::map<std::string, std::vector<glm::vec3>> all;
+
+        for (int i = 0; i < 11; ++i)
+        {	
+		std::vector<glm::vec3> g;
+                for (auto k : all_orbit)
+                {
+                        glm::vec3 temp;
+                        temp.x = k[i][1] / 10e9;
+                        temp.y = k[i][2] / 10e9;
+                        temp.z = k[i][0] / 10e9;
+			g.push_back(temp);
+		}
+                        all.emplace(key[i], g);
+        }
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -158,22 +185,22 @@ int main()
 
     Shader ourShader("1.model_loading.vs", "1.model_loading.fs");
 
-    Model venus("/home/maratkhab/activeproj/project/modeles/Venus_v1_L3.123c5f86bd5e-26c0-4e50-bae1-911256cb7689/13901_Venus_v1_l3.obj", 0.002f);
-    Model sun("/home/maratkhab/activeproj/project/modeles/Venus_v1_L3.123c5f86bd5e-26c0-4e50-bae1-911256cb7689/13901_Venus_v1_l3.obj", 0.008f);
-    Model mars("/home/maratkhab/activeproj/project/modeles/Mars_v1_L3.123c794d6114-bc98-4e8c-8486-493396506fb0/13903_Mars_v1_l3.obj", 0.001f);
-    Model saturn("/home/maratkhab/activeproj/project/modeles/Saturn_v1_L3.123ca3750520-9e3a-478a-8d9b-97e3a212a44c/13906_Saturn_v1_l3.obj", 0.005f);
-    Model earth("/home/maratkhab/activeproj/project/modeles/Earth_v1_L3.123cce489830-ca89-49f4-bb2a-c921cce7adb2/13902_Earth_v1_l3.obj", 0.002f);
-    Model moon("/home/maratkhab/activeproj/project/modeles/Moon_3D_Model/moon.obj", 0.001f);
-    Model jupyter("/home/maratkhab/activeproj/project/modeles/Jupiter_v1_L3.123c7d3fa769-8754-46f9-8dde-2a1db30a7c4e/13905_Jupiter_V1_l3.obj", 0.004f);
-    Model mercury("/home/maratkhab/activeproj/project/modeles/Mercury_v1_L3.123cc7069d02-51a1-4f1a-a9ac-3b10e52568dc/13900_Mercury_v1_l3.obj", 0.001f);
-    Model uranus("/home/maratkhab/activeproj/project/modeles/Mercury_v1_L3.123cc7069d02-51a1-4f1a-a9ac-3b10e52568dc/13900_Mercury_v1_l3.obj", 0.002f);
-    Model neptun("/home/maratkhab/activeproj/project/modeles/Neptune_v2_L3.123c6fe2b903-2de3-4b54-836a-dd427a10e972/13908_Neptune_V2_l3.obj", 0.002f);
-    Model pluto("/home/maratkhab/activeproj/project/modeles/Pluto_v1_L3.123c3daa7fdb-a7d7-4bd1-b360-fd69551814cb/13909_Pluto_v1_l3.obj ", 0.0001f);
-    Model rocket("/home/maratkhab/activeproj/project/modeles/UFO_Saucer_v1_L2.123c50bd261a-1751-44c1-b973-f0dd9e11cecd/13884_UFO_Saucer_v1_l2.obj", 0.001f);
+    Model venus("modeles/Venus_v1_L3.123c5f86bd5e-26c0-4e50-bae1-911256cb7689/13901_Venus_v1_l3.obj", 0.002f);
+    Model sun("modeles/Venus_v1_L3.123c5f86bd5e-26c0-4e50-bae1-911256cb7689/13901_Venus_v1_l3.obj", 0.008f);
+    Model mars("modeles/Mars_v1_L3.123c794d6114-bc98-4e8c-8486-493396506fb0/13903_Mars_v1_l3.obj", 0.001f);
+    Model saturn("modeles/Saturn_v1_L3.123ca3750520-9e3a-478a-8d9b-97e3a212a44c/13906_Saturn_v1_l3.obj", 0.005f);
+    Model earth("modeles/Earth_v1_L3.123cce489830-ca89-49f4-bb2a-c921cce7adb2/13902_Earth_v1_l3.obj", 0.002f);
+    Model moon("modeles/Moon_3D_Model/moon.obj", 0.001f);
+    Model jupyter("modeles/Jupiter_v1_L3.123c7d3fa769-8754-46f9-8dde-2a1db30a7c4e/13905_Jupiter_V1_l3.obj", 0.004f);
+    Model mercury("modeles/Mercury_v1_L3.123cc7069d02-51a1-4f1a-a9ac-3b10e52568dc/13900_Mercury_v1_l3.obj", 0.001f);
+    Model uranus("modeles/Mercury_v1_L3.123cc7069d02-51a1-4f1a-a9ac-3b10e52568dc/13900_Mercury_v1_l3.obj", 0.002f);
+    Model neptun("modeles/Neptune_v2_L3.123c6fe2b903-2de3-4b54-836a-dd427a10e972/13908_Neptune_V2_l3.obj", 0.002f);
+    Model pluto("modeles/Pluto_v1_L3.123c3daa7fdb-a7d7-4bd1-b360-fd69551814cb/13909_Pluto_v1_l3.obj ", 0.0001f);
+    Model rocket("modeles/UFO_Saucer_v1_L2.123c50bd261a-1751-44c1-b973-f0dd9e11cecd/13884_UFO_Saucer_v1_l2.obj", 0.001f);
     Shader shader("shader.vs", "shader.fs");
     uint32_t i = 0;
     std::map<std::string, std::shared_ptr<LineRenderer>> lineRenderers;
-    for (const auto& planet : myMap) {
+    for (const auto& planet : all) {
         std::vector<glm::vec3> linePoints = planet.second;
         std::shared_ptr<LineRenderer> lineRenderer = std::make_shared<LineRenderer>(linePoints);
         lineRenderers[planet.first] = lineRenderer;
@@ -212,73 +239,61 @@ int main()
         //line.DrawLine(myMap["EARTH"]);
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["EARTH"][i]);
-	std::cout<<myMap["EARTH"][i].x<<std::endl;
         earth.Draw(ourShader, model);
 
 	ourShader.use();
 	model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["VENUS"][i]);
-        std::cout<<myMap["VENUS"][i].x<<std::endl;
         venus.Draw(ourShader, model);
 
 	ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["MARS"][i]);
-        std::cout<<myMap["MARS"][i].x<<std::endl;
         mars.Draw(ourShader, model);
 
 	ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["MERCURY"][i]);
-        std::cout<<myMap["MERCURY"][i].x<<std::endl;
         mercury.Draw(ourShader, model);
 
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["JUPYTER"][i]);
-        std::cout<<myMap["JUPYTER"][i].x<<std::endl;
         jupyter.Draw(ourShader, model);
 
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["SATURN"][i]);
-        std::cout<<myMap["SATURN"][i].x<<std::endl;
         saturn.Draw(ourShader, model);
 
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["URANUS"][i]);
-        std::cout<<myMap["URANUS"][i].x<<std::endl;
         uranus.Draw(ourShader, model);
 
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["NEPTUNE"][i]);
-        std::cout<<myMap["NEPTUNE"][i].x<<std::endl;
         neptun.Draw(ourShader, model);
 
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["PLUTO"][i]);
-        std::cout<<myMap["PLUTO"][i].x<<std::endl;
         venus.Draw(ourShader, model);
 
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["MOON"][i]);
-        std::cout<<myMap["MOON"][i].x<<std::endl;
         moon.Draw(ourShader, model);
 
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["SUN"][i]);
-        std::cout<<myMap["SUN"][i].x<<std::endl;
         sun.Draw(ourShader, model);
 
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["ROCKET"][i]);
-        std::cout<<myMap["ROCKET"][i].x<<std::endl;
         rocket.Draw(ourShader, model);
         glfwSwapBuffers(window);
         glfwPollEvents();
