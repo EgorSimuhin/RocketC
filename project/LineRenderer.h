@@ -30,6 +30,7 @@ public:
         shader.setMat4("projection", projection);
 
         glBindVertexArray(VAO);
+	glLineWidth(0.2f);
         glDrawArrays(GL_LINE_STRIP, 0, points.size());
     }
 };

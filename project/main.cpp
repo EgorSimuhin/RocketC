@@ -1,15 +1,15 @@
-#include <glad/glad.h>
+#include "include/glad/include/glad/glad.h"
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader_m.h"
+//#include "shader_m.h"
 #include "camera.h"
 #include "model.h"
 #include <iostream>
-#include "EphemerisRelease.hpp"
+#include "EphemerisRelease.h"
 #include "RK.h"
 #include "PlanetOrbit.h"
 #include <memory>
@@ -85,9 +85,9 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 // timing
-float deltaTime = 1.0f;
+float deltaTime = 0.0f;
 float lastFrame = 0.0f;
-
+float coeff = 0.0002f;
 int main()
 {
     std::string filePath("lnxp1600p2200.405");
@@ -158,6 +158,8 @@ int main()
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+    /*GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);*/
 
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
@@ -190,12 +192,11 @@ int main()
     Model mars("modeles/Mars_v1_L3.123c794d6114-bc98-4e8c-8486-493396506fb0/13903_Mars_v1_l3.obj", 0.001f);
     Model saturn("modeles/Saturn_v1_L3.123ca3750520-9e3a-478a-8d9b-97e3a212a44c/13906_Saturn_v1_l3.obj", 0.005f);
     Model earth("modeles/Earth_v1_L3.123cce489830-ca89-49f4-bb2a-c921cce7adb2/13902_Earth_v1_l3.obj", 0.002f);
-    Model moon("modeles/Moon_3D_Model/moon.obj", 0.001f);
     Model jupyter("modeles/Jupiter_v1_L3.123c7d3fa769-8754-46f9-8dde-2a1db30a7c4e/13905_Jupiter_V1_l3.obj", 0.004f);
     Model mercury("modeles/Mercury_v1_L3.123cc7069d02-51a1-4f1a-a9ac-3b10e52568dc/13900_Mercury_v1_l3.obj", 0.001f);
     Model uranus("modeles/Mercury_v1_L3.123cc7069d02-51a1-4f1a-a9ac-3b10e52568dc/13900_Mercury_v1_l3.obj", 0.002f);
     Model neptun("modeles/Neptune_v2_L3.123c6fe2b903-2de3-4b54-836a-dd427a10e972/13908_Neptune_V2_l3.obj", 0.002f);
-    Model pluto("modeles/Pluto_v1_L3.123c3daa7fdb-a7d7-4bd1-b360-fd69551814cb/13909_Pluto_v1_l3.obj ", 0.0001f);
+    Model pluto("modeles/Mercury_v1_L3.123cc7069d02-51a1-4f1a-a9ac-3b10e52568dc/13900_Mercury_v1_l3.obj", 0.00007f);
     Model rocket("modeles/UFO_Saucer_v1_L2.123c50bd261a-1751-44c1-b973-f0dd9e11cecd/13884_UFO_Saucer_v1_l2.obj", 0.001f);
     Shader shader("shader.vs", "shader.fs");
     uint32_t i = 0;
@@ -205,6 +206,9 @@ int main()
         std::shared_ptr<LineRenderer> lineRenderer = std::make_shared<LineRenderer>(linePoints);
         lineRenderers[planet.first] = lineRenderer;
     }
+    std::vector<glm::vec3> linePoints = myMap["ROCKET"];
+    std::shared_ptr<LineRenderer> lineRenderer = std::make_shared<LineRenderer>(linePoints);
+    lineRenderers["ROCKET"] = lineRenderer;
     while (!glfwWindowShouldClose(window))
     {
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -226,6 +230,12 @@ int main()
             glm::mat4 model = glm::mat4(1.0f);
             renderer.second->Draw(ourShader, model, view, projection);
         }
+        ourShader.use();
+
+        projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
+        view = camera.GetViewMatrix();
+        ourShader.setMat4("projection", projection);
+        ourShader.setMat4("view", view);
 
         ourShader.use();
 
@@ -236,7 +246,6 @@ int main()
 
 
         if (i > myMap["EARTH"].size()) {i = 0;}
-        //line.DrawLine(myMap["EARTH"]);
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["EARTH"][i]);
         earth.Draw(ourShader, model);
@@ -279,13 +288,8 @@ int main()
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["PLUTO"][i]);
-        venus.Draw(ourShader, model);
-
-        ourShader.use();
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, myMap["MOON"][i]);
-        moon.Draw(ourShader, model);
-
+        pluto.Draw(ourShader, model);
+    
         ourShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, myMap["SUN"][i]);
@@ -297,6 +301,9 @@ int main()
         rocket.Draw(ourShader, model);
         glfwSwapBuffers(window);
         glfwPollEvents();
+	if (coeff <= 0.00000001f) {coeff = 0.00000001f;}
+	if (coeff >= 1.0f) {coeff = 1.0f;}
+	glfwWaitEventsTimeout(step*coeff);
 	i++;
     }
 
@@ -310,6 +317,10 @@ void processInput(GLFWwindow *window)
         glfwSetWindowShouldClose(window, true);
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
         camera.ResetCameraPosition();
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        coeff /= 5;
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        coeff *= 1.5;
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
