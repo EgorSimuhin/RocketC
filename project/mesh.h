@@ -1,7 +1,5 @@
-#ifndef MESH_H
-#define MESH_H
-
-#include <glad/glad.h> // holds all OpenGL type declarations
+#pragma once
+#include "include/glad/include/glad/glad.h" // holds all OpenGL type declarations
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -141,4 +139,3 @@ private:
         glBindVertexArray(0);
     }
 };
-#endif
