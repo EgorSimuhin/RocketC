@@ -1,4 +1,4 @@
-
+Собирать все на дистрибутивах Linux!!!Как собирать на винде нам не известно.
 1.sudo apt-get install libassimp-dev // подключение бибилиотеки assimp
 
 2.sudo apt-get install libglfw3 // подключение библиотеки glfw
