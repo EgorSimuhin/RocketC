@@ -4,7 +4,7 @@
 2.sudo apt-get install libglfw3 // подключение библиотеки glfw
 
 3.Также вам надо компилировать файл следующим образом
-g++ main.cpp glad.o -o main -lglfw -ldl -lassimp
+g++ main.cpp glad.o -o main -lglfw -ldl -lassimp, перейдя в папку project (CMakeList.txt не удался, так как assimp у каждого свой и не понятно, где стоит).
 4.И запускать ./main
 4.Инструкция по управлению симуляцией:
    Клавиша W движение по направлению курсора;
